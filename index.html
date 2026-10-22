@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>Claude 열기</title>
+<style>
+  :root { --bg: #faf9f5; --fg: #1f1e1d; --muted: #6b6a66; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #1f1e1d; --fg: #f0eee6; --muted: #a3a29c; } }
+  body { margin: 0; padding: 32px 16px; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, sans-serif; }
+  a { color: inherit; }
+  p { max-width: 32rem; margin: 0 auto 12px; }
+  .muted { color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<p id="msg">Claude 앱으로 여는 중…</p>
+<p class="muted" id="alt"></p>
+<script>
+// 사용법: https://everyhandbook.github.io/claude-open/#session_XXXX (또는 #cse_XXXX)
+// # 뒤 값은 서버로 가지 않는다. 형식이 맞을 때만 열고, 앱이 없으면 웹으로 넘긴다.
+(function () {
+  var raw = decodeURIComponent(location.hash.slice(1));
+  var m = /^(?:session|cse)_([A-Za-z0-9_-]{8,80})$/.exec(raw);
+  var msg = document.getElementById('msg');
+  var alt = document.getElementById('alt');
+  if (!m) { msg.textContent = '열 스레드 주소가 없습니다.'; return; }
+  var id = 'session_' + m[1];
+  var app = 'claude://code/' + id;
+  var web = 'https://claude.ai/code/' + id;
+  alt.innerHTML = '';
+  var a1 = document.createElement('a'); a1.href = app; a1.textContent = '앱에서 열기';
+  var a2 = document.createElement('a'); a2.href = web; a2.textContent = '웹에서 열기';
+  alt.appendChild(a1); alt.appendChild(document.createTextNode(' · ')); alt.appendChild(a2);
+  var left = false;
+  document.addEventListener('visibilitychange', function () { if (document.hidden) left = true; });
+  window.addEventListener('blur', function () { left = true; });
+  var mobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+  if (mobile) { location.replace(web); return; }
+  location.href = app;
+  setTimeout(function () {
+    if (left) { msg.textContent = 'Claude 앱에서 열었습니다. 이 탭은 닫아도 됩니다.'; return; }
+    msg.textContent = '앱이 열리지 않았습니다. 아래에서 골라 주세요.';
+  }, 1500);
+})();
+</script>
+</body>
+</html>
