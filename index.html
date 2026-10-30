@@ -19,13 +19,27 @@
 <p id="msg">Claude 앱으로 여는 중…</p>
 <p class="muted" id="alt"></p>
 <script>
-// 사용법: https://everyhandbook.github.io/claude-open/#session_XXXX (또는 #cse_XXXX)
+// 사용법: https://everyhandbook.github.io/claude-open/#session_XXXX (또는 #cse_XXXX, PC 앱 전용 #local_<uuid>)
 // # 뒤 값은 서버로 가지 않는다. 형식이 맞을 때만 열고, 앱이 없으면 웹으로 넘긴다.
 (function () {
   var raw = decodeURIComponent(location.hash.slice(1));
   var m = /^(?:session|cse)_([A-Za-z0-9_-]{8,80})$/.exec(raw);
   var msg = document.getElementById('msg');
   var alt = document.getElementById('alt');
+  // #local_<uuid>: Remote Control이 없는 스레드(예약 작업 실행분 등) — PC 데스크톱 앱에서만 열린다(웹 주소 없음)
+  var loc = /^local_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.exec(raw);
+  if (loc) {
+    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      msg.textContent = '이 스레드는 PC의 Claude 앱에서만 열 수 있습니다.';
+      return;
+    }
+    var localApp = 'claude://claude.ai/epitaxy/' + loc[0];
+    var a0 = document.createElement('a'); a0.href = localApp; a0.textContent = '앱에서 열기';
+    alt.appendChild(a0);
+    location.href = localApp;
+    setTimeout(function () { msg.textContent = '앱이 열리지 않았으면 위 링크를 눌러 주세요. 이 탭은 닫아도 됩니다.'; }, 1500);
+    return;
+  }
   if (!m) { msg.textContent = '열 스레드 주소가 없습니다.'; return; }
   var id = 'session_' + m[1];
   var app = 'claude://code/' + id;
